@@ -23,4 +23,8 @@ public interface ChatServiceInterface {
     ResponseModel deleteChat(String chatId, String id, String authToken);
 
     ResponseModel clearChats(String chatId, String id, String authToken);
+
+    Chat getChatByChatId(String chatId, String msgId);
+
+    ResponseModel forwardMessage(String destinationChatId, String chatId, String msgId, String id, String authToken);
 }

@@ -7,6 +7,7 @@ import com.learn.example.demo.Repository.ChatRepository.ChatFeatureRepository;
 import com.learn.example.demo.Repository.LoginRepository.LoginFunctionalityRepository;
 import com.learn.example.demo.Utility.JwtUtil;
 import com.learn.example.demo.iChatApplication;
+import jakarta.ejb.Local;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,6 +77,8 @@ public class ChatServiceImplementation implements ChatServiceInterface {
                     if (chat != null && chat.getSenderId().equals(id)) {
                         if (isWithin15Minutes(chat.getTimeStamp())) {
                             chat.setDeletedForever(true);
+                            chat.setForwarded(false);
+                            chat.setEdited(false);
                             chat.setDeletedMessageUserId(new ArrayList<>());
                             chat.setContent("This message is deleted forever!");
                             repository.save(chat);
@@ -375,6 +378,137 @@ public class ChatServiceImplementation implements ChatServiceInterface {
         return response;
     }
 
+    @Override
+    public Chat getChatByChatId(String chatId, String msgId) {
+        Chat chat = repository.findByChatIdAndMessageId(chatId, msgId);
+        return chat;
+    }
+
+    @Override
+    public ResponseModel forwardMessage(String destinationChatId, String chatId, String msgId, String id, String authToken) {
+        try{
+            if(jwtUtil.validateToken(authToken, id)){
+                Chat chat = repository.findByChatIdAndMessageId(chatId, msgId);
+                if (chat != null  && !chat.isDeletedForever()) {
+                    if(!chat.getSenderId().equals(id) && !chat.getChatId().equals(destinationChatId)) {
+                        Optional<User> optionalUser = loginRepository.findById(id);
+                        log.info("Into other user!!");
+                        if(optionalUser.isPresent()) {
+                            User user = optionalUser.get();
+                            if(user.getChatId()==null){
+                                user.setChatId(new HashMap<>());
+                            }
+                            HashMap<String, LocalDateTime> chatIds = user.getChatId();
+                            chatIds.put(destinationChatId, LocalDateTime.now());
+                            user.setChatId(chatIds);
+                            loginRepository.save(user);
+                            Chat forwardedChat = new Chat();
+                            String messageId = generateMessageId();
+                            forwardedChat.setMessageId(messageId);
+                            forwardedChat.setForwarded(true);
+                            forwardedChat.setSenderId(id);
+                            forwardedChat.setReceiverId(chat.getSenderId());
+                            forwardedChat.setChatId(destinationChatId);
+                            forwardedChat.setContent(chat.getContent());
+                            forwardedChat.setTimeStamp(LocalDateTime.now());
+                            repository.save(forwardedChat);
+                            response.setSuccess(true);
+                            response.setMessage(forwardedChat.getMessageId());
+                            log.info("Chat forwarded successfully");
+                        }
+                        else{
+                            log.info("User with id - "+id+" doesn't exists!");
+                            response.setSuccess(false);
+                            response.setMessage("User doesn't exists!");
+                        }
+                    }
+                    else{
+                        if(chat.isForwarded()) {
+                            Optional<User> optionalUser = loginRepository.findById(id);
+                            if (optionalUser.isPresent()) {
+                                User user = optionalUser.get();
+                                if (user.getChatId() == null) {
+                                    user.setChatId(new HashMap<>());
+                                }
+                                HashMap<String, LocalDateTime> chatIds = user.getChatId();
+                                chatIds.put(destinationChatId, LocalDateTime.now());
+                                user.setChatId(chatIds);
+                                loginRepository.save(user);
+//                                System.out.println(chat.getContent());
+                                Chat chats = new Chat();
+                                chats.setForwarded(chat.isForwarded());
+                                chats.setSenderId(id);
+                                String messageId = generateMessageId();
+                                chats.setMessageId(messageId);
+                                chats.setChatId(destinationChatId);
+                                chats.setTimeStamp(LocalDateTime.now());
+                                chats.setContent(chat.getContent());
+                                chats.setReceiverId(fetchReceiverIdFromChatId(destinationChatId, id));
+                                chats.setEdited(chat.isEdited());
+                                repository.save(chats);
+                                response.setSuccess(true);
+                                response.setMessage(chats.getMessageId());
+                                log.info("Chat forwarded successfully!!!");
+                            } else {
+                                log.info("User with id - " + id + " doesn't exists!");
+                                response.setSuccess(false);
+                                response.setMessage("User doesn't exists!");
+                            }
+                        }
+                        else{
+                            Optional<User> optionalUser = loginRepository.findById(id);
+                            if (optionalUser.isPresent()) {
+                                User user = optionalUser.get();
+                                if (user.getChatId() == null) {
+                                    user.setChatId(new HashMap<>());
+                                }
+                                HashMap<String, LocalDateTime> chatIds = user.getChatId();
+                                chatIds.put(destinationChatId, LocalDateTime.now());
+                                user.setChatId(chatIds);
+                                loginRepository.save(user);
+//                                System.out.println(chat.getContent());
+                                Chat chats = new Chat();
+                                chats.setForwarded(false);
+                                chats.setSenderId(id);
+                                String messageId = generateMessageId();
+                                chats.setMessageId(messageId);
+                                chats.setChatId(destinationChatId);
+                                chats.setTimeStamp(LocalDateTime.now());
+                                chats.setContent(chat.getContent());
+                                chats.setReceiverId(fetchReceiverIdFromChatId(destinationChatId, id));
+                                chats.setEdited(false);
+                                repository.save(chats);
+                                response.setSuccess(true);
+                                response.setMessage(chats.getMessageId());
+                                log.info("Chat forwarded successfully!!!");
+                            } else {
+                                log.info("User with id - " + id + " doesn't exists!");
+                                response.setSuccess(false);
+                                response.setMessage("User doesn't exists!");
+                            }
+                        }
+                    }
+                }
+                else{
+                    log.info("Chat is with id  - " +msgId+" already deleted!! ");
+                    response.setSuccess(false);
+                    response.setMessage("Message is Already Deleted!");
+                }
+            }
+            else{
+                log.info("Unauthorized Access for id - " + id);
+                response.setSuccess(false);
+                response.setMessage("Unauthorized Access!");
+            }
+        }
+        catch(Exception e){
+            log.info("Error Occurred! - "+e.getMessage());
+            response.setSuccess(false);
+            response.setMessage("Internal Error Occurred! Try logging in again!");
+        }
+        return response;
+    }
+
     private List<Chat> filterChatsWithDeletedMsgs(List<Chat> chats, String id) {
         List<Chat> filteredChats = new ArrayList<>();
         Iterator<Chat> chatIterator = chats.iterator();
@@ -437,4 +571,16 @@ public class ChatServiceImplementation implements ChatServiceInterface {
         // Check if the difference is less than 15 minutes
         return Math.abs(differenceInMinutes) < 15;
     }
+    private String fetchReceiverIdFromChatId(String chatId, String id) {
+        String receiverId = "";
+        String sp[] = chatId.split("_");
+        if(sp[0].equals(id)){
+            receiverId = sp[1];
+        }
+        else{
+            receiverId = sp[0];
+        }
+        return receiverId;
+    }
+
 }

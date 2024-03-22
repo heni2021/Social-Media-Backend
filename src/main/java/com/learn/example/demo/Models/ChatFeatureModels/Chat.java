@@ -23,5 +23,6 @@ public class Chat {
     private String content;
     private boolean isEdited=false;
     private boolean isDeletedForever=false;
+    private boolean isForwarded = false;
     private List<String> deletedMessageUserId;
 }

@@ -226,7 +226,7 @@ public class PostsServiceImplementation implements PostsServiceInterface{
     public ResponseModel updateLikes(String userId, String postId, String authToken) {
         try{
             if(jwtUtil.validateToken(authToken, userId)) {
-                System.out.println(postId);
+//                System.out.println(postId);
                 Optional<Posts> post = repository.findById(postId);
                 if (post.isPresent()) {
                     Posts oldPost = post.get();

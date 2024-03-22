@@ -564,7 +564,7 @@ public class LoginServiceImplementation implements LoginServiceInterface {
                     chat.remove();
                 }
             }
-            System.out.println(chats);
+//            System.out.println(chats);
             return chats;
         }
         return Collections.emptyList();

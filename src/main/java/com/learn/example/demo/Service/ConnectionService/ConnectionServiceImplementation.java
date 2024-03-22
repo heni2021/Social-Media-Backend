@@ -507,12 +507,12 @@ public class ConnectionServiceImplementation implements ConnectionServiceInterfa
                     List<String> outgoingFriendRequest = user.getOutgoingRequestId();
                     List<String> outgoingFriend = fetchUserIdFromOutgoingRequest(outgoingFriendRequest);
                     if((friends!=null && friends.contains(userId)) || (!outgoingFriend.isEmpty() && outgoingFriend.contains(userId))){
-                        System.out.println(userId+" "+true);
+//                        System.out.println(userId+" "+true);
                         response.setSuccess(true);
                         response.setMessage("true");
                     }
                     else{
-                        System.out.println(userId+" "+false);
+//                        System.out.println(userId+" "+false);
                         response.setSuccess(true);
                         response.setMessage("false");
                     }

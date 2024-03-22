@@ -37,34 +37,10 @@ public class ChatController {
     public ResponseModel deleteAMessageForever(@PathVariable String chatId, @PathVariable String messageId, @PathVariable String id, @RequestHeader("auth-token") String authToken) {
         ResponseModel response = service.deleteAMessageForever(chatId, messageId, id, authToken);
         if (response.isSuccess()) {
-            Chat deletedChat = createDeletedChatObject(id, chatId, messageId);
+            Chat deletedChat = service.getChatByChatId(chatId, messageId);
             messagingTemplate.convertAndSend("/topic/chat/" + chatId, deletedChat);
         }
         return response;
-    }
-
-    private Chat createDeletedChatObject(String senderId, String chatId, String messageId) {
-        Chat chat = new Chat();
-        chat.setContent("This message is deleted forever!");
-        chat.setTimeStamp(LocalDateTime.now());
-        chat.setSenderId(senderId);
-        chat.setReceiverId(fetchReceiverIdFromChatId(chatId, senderId));
-        chat.setChatId(chatId);
-        chat.setMessageId(messageId);
-        chat.setEdited(false);
-        chat.setDeletedForever(true);
-        return chat;
-    }
-    private String fetchReceiverIdFromChatId(String chatId, String id) {
-        String receiverId = "";
-        String sp[] = chatId.split("_");
-        if(sp[0].equals(id)){
-            receiverId = sp[1];
-        }
-        else{
-            receiverId = sp[0];
-        }
-        return receiverId;
     }
 
     @GetMapping("/canDeleteForever/{chatId}/{messageId}/{id}")
@@ -82,23 +58,21 @@ public class ChatController {
     public ResponseModel editChatMessage(@PathVariable String chatId, @PathVariable String id, @PathVariable String messageId, @RequestHeader("auth-token") String authToken, @RequestBody Chat chat){
         ResponseModel responseModel =  service.editMessage(chatId, id, messageId, authToken, chat);
         if(responseModel.isSuccess()){
-            Chat editedChat = createEditedChatObject(id, chatId, messageId, chat);
+            Chat editedChat = service.getChatByChatId(chatId, messageId);
             messagingTemplate.convertAndSend("/topic/chat/" + chatId, editedChat);
         }
         return responseModel;
     }
 
-    private Chat createEditedChatObject(String id, String chatId, String messageId, Chat editedChat) {
-        Chat chat = new Chat();
-        chat.setContent(editedChat.getContent());
-        chat.setTimeStamp(LocalDateTime.now());
-        chat.setSenderId(id);
-        chat.setReceiverId(fetchReceiverIdFromChatId(chatId, id));
-        chat.setChatId(chatId);
-        chat.setMessageId(messageId);
-        chat.setEdited(true);
-        chat.setDeletedForever(false);
-        return chat;
+    @PutMapping("/forward/{destinationChatId}/{chatId}/{msgId}/{id}")
+    public ResponseModel forwardMsg(@PathVariable String destinationChatId, @PathVariable String chatId, @PathVariable String msgId, @PathVariable String id, @RequestHeader("auth-token") String authToken){
+        log.info("Hit forward msg!");
+        ResponseModel response = service.forwardMessage(destinationChatId, chatId, msgId, id, authToken);
+        if(response.isSuccess()){
+            Chat forwardedChat = service.getChatByChatId(destinationChatId, response.getMessage());
+            messagingTemplate.convertAndSend("/topic/chat/" + destinationChatId, forwardedChat);
+        }
+        return response;
     }
 
     @GetMapping("/convert/{time}")
