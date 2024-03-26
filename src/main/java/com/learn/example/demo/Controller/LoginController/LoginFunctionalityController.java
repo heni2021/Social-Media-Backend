@@ -1,9 +1,9 @@
 package com.learn.example.demo.Controller.LoginController;
 
 import com.learn.example.demo.Models.ChatFeatureModels.Chat;
+import com.learn.example.demo.Models.LoginModels.User;
 import com.learn.example.demo.Models.ResponsesModel.ImageRequestData;
 import com.learn.example.demo.Models.ResponsesModel.ResponseModel;
-import com.learn.example.demo.Models.LoginModels.User;
 import com.learn.example.demo.Service.LoginService.LoginServiceImplementation;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;

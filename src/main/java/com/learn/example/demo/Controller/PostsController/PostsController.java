@@ -1,7 +1,7 @@
 package com.learn.example.demo.Controller.PostsController;
 
-import com.learn.example.demo.Models.ResponsesModel.ImageRequestData;
 import com.learn.example.demo.Models.PostsModel.Posts;
+import com.learn.example.demo.Models.ResponsesModel.ImageRequestData;
 import com.learn.example.demo.Models.ResponsesModel.ResponseModel;
 import com.learn.example.demo.Service.PostsService.PostsServiceImplementation;
 import jakarta.servlet.http.HttpServletRequest;

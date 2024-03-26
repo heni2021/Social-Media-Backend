@@ -1,13 +1,13 @@
 package com.learn.example.demo.Service.ConnectionService;
 
-import com.learn.example.demo.iChatApplication;
 import com.learn.example.demo.Models.ConnectionModels.FriendRequest;
-import com.learn.example.demo.Models.ResponsesModel.ResponseModel;
 import com.learn.example.demo.Models.LoginModels.User;
+import com.learn.example.demo.Models.ResponsesModel.ResponseModel;
 import com.learn.example.demo.Repository.ConnectionRepository.ConnectionFunctionalityRepository;
 import com.learn.example.demo.Repository.LoginRepository.LoginFunctionalityRepository;
 import com.learn.example.demo.Service.LoginService.LoginServiceImplementation;
 import com.learn.example.demo.Utility.JwtUtil;
+import com.learn.example.demo.iChatApplication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

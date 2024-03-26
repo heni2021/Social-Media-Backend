@@ -1,8 +1,8 @@
 package com.learn.example.demo.Service.ConnectionService;
 
 import com.learn.example.demo.Models.ConnectionModels.FriendRequest;
-import com.learn.example.demo.Models.ResponsesModel.ResponseModel;
 import com.learn.example.demo.Models.LoginModels.User;
+import com.learn.example.demo.Models.ResponsesModel.ResponseModel;
 
 import java.util.List;
 

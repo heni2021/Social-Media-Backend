@@ -1,8 +1,8 @@
 package com.learn.example.demo.Service.LoginService;
 
 import com.learn.example.demo.Models.ChatFeatureModels.Chat;
-import com.learn.example.demo.Models.ResponsesModel.ResponseModel;
 import com.learn.example.demo.Models.LoginModels.User;
+import com.learn.example.demo.Models.ResponsesModel.ResponseModel;
 
 import java.util.List;
 

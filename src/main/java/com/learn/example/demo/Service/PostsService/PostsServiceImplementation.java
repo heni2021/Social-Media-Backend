@@ -1,12 +1,12 @@
 package com.learn.example.demo.Service.PostsService;
 
-import com.learn.example.demo.iChatApplication;
+import com.learn.example.demo.Models.LoginModels.User;
 import com.learn.example.demo.Models.PostsModel.Posts;
 import com.learn.example.demo.Models.ResponsesModel.ResponseModel;
-import com.learn.example.demo.Models.LoginModels.User;
 import com.learn.example.demo.Repository.LoginRepository.LoginFunctionalityRepository;
 import com.learn.example.demo.Repository.PostsRepository.PostsRepository;
 import com.learn.example.demo.Utility.JwtUtil;
+import com.learn.example.demo.iChatApplication;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

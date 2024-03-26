@@ -1,8 +1,8 @@
 package com.learn.example.demo.Controller.ConnectionsController;
 
 import com.learn.example.demo.Models.ConnectionModels.FriendRequest;
-import com.learn.example.demo.Models.ResponsesModel.ResponseModel;
 import com.learn.example.demo.Models.LoginModels.User;
+import com.learn.example.demo.Models.ResponsesModel.ResponseModel;
 import com.learn.example.demo.Service.ConnectionService.ConnectionServiceImplementation;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;

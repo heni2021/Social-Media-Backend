@@ -3,7 +3,6 @@ package com.learn.example.demo.Controller.ChatController;
 import com.learn.example.demo.Models.ChatFeatureModels.Chat;
 import com.learn.example.demo.Models.ResponsesModel.ResponseModel;
 import com.learn.example.demo.Service.ChatServices.ChatServiceImplementation;
-import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +11,6 @@ import org.springframework.messaging.handler.annotation.*;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -93,5 +91,15 @@ public class ChatController {
     @DeleteMapping("/clearChats/{chatId}/{id}")
     public ResponseModel clearChats(@PathVariable String chatId, @PathVariable String id, @RequestHeader("auth-token") String authToken){
         return service.clearChats(chatId, id, authToken);
+    }
+
+    @GetMapping("/countUnread/{chatId}/{id}")
+    public ResponseModel countUnreadMsg(@PathVariable String chatId, @PathVariable String id, @RequestHeader("auth-token") String authToken){
+        return service.countUnreadMsgs(chatId, id, authToken);
+    }
+
+    @PutMapping("/updateTiming/{chatId}/{id}")
+    public ResponseModel updateAccessTime(@PathVariable String chatId, @PathVariable String id, @RequestHeader("auth-token") String authToken){
+        return service.updateAccessTime(chatId, id, authToken);
     }
 }

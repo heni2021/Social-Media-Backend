@@ -6,8 +6,6 @@ import com.learn.example.demo.Models.ResponsesModel.ResponseModel;
 import com.learn.example.demo.Repository.ChatRepository.ChatFeatureRepository;
 import com.learn.example.demo.Repository.LoginRepository.LoginFunctionalityRepository;
 import com.learn.example.demo.Utility.JwtUtil;
-import com.learn.example.demo.iChatApplication;
-import jakarta.ejb.Local;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +15,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class ChatServiceImplementation implements ChatServiceInterface {
@@ -507,6 +504,93 @@ public class ChatServiceImplementation implements ChatServiceInterface {
             response.setMessage("Internal Error Occurred! Try logging in again!");
         }
         return response;
+    }
+
+    @Override
+    public ResponseModel countUnreadMsgs(String chatId, String id, String authToken) {
+        try{
+            if(jwtUtil.validateToken(authToken, id)){
+                Optional<User> optionalUser = loginRepository.findById(id);
+                if(optionalUser.isPresent()){
+                    User user = optionalUser.get();
+                    HashMap<String, LocalDateTime> chatIds = user.getChatId();
+                    LocalDateTime accessTime = chatIds.get(chatId);
+                    LocalDateTime currentTime = LocalDateTime.now();
+                    if(accessTime!=null && accessTime.isBefore(currentTime)){
+                        List<Chat> chats = repository.findAllByChatIdOrderByTimeStamp(chatId);
+                        Long unreadChatCount = countUnreadChats(chats,id, accessTime);
+                        response.setSuccess(true);
+                        response.setMessage(String.valueOf(unreadChatCount));
+                    }
+                    else{
+                        response.setSuccess(true);
+                        response.setMessage("0");
+                    }
+                }
+                else{
+                    log.info("User Doesn't exists with id- "+id);
+                    response.setSuccess(false);
+                    response.setMessage("User doesn't exists!! Try relogging!");
+                }
+            }
+            else{
+                log.info("Unauthorized Access for id - " + id);
+                response.setSuccess(false);
+                response.setMessage("Unauthorized Access!");
+            }
+        }
+        catch(Exception e){
+            response.setSuccess(false);
+            log.info("Error Occurred : "+e.getMessage());
+            response.setMessage("Some internal error occurred!");
+        }
+        return response;
+    }
+
+    @Override
+    public ResponseModel updateAccessTime(String chatId, String id, String authToken) {
+        try{
+            if(jwtUtil.validateToken(authToken, id)){
+                Optional<User> optionalUser = loginRepository.findById(id);
+                if(optionalUser.isPresent()){
+                    User user = optionalUser.get();
+                    HashMap<String, LocalDateTime> chatIds = user.getChatId();
+                    chatIds.put(chatId, LocalDateTime.now());
+                    user.setChatId(chatIds);
+                    loginRepository.save(user);
+                    response.setMessage("Time updated successfully!");
+                    response.setSuccess(true);
+                }
+                else{
+                    log.info("User Doesn't exists with id- "+id);
+                    response.setSuccess(false);
+                    response.setMessage("User doesn't exists!! Try relogging!");
+                }
+            }
+            else{
+                log.info("Unauthorized Access for id - " + id);
+                response.setSuccess(false);
+                response.setMessage("Unauthorized Access!");
+            }
+        }
+        catch(Exception e){
+            response.setSuccess(false);
+            log.info("Error Occurred : "+e.getMessage());
+            response.setMessage("Some internal error occurred!");
+        }
+        return response;
+    }
+
+    private Long countUnreadChats(List<Chat> chats, String id, LocalDateTime accessTime) {
+        Long count = 0L;
+        Iterator<Chat> chatIterator = chats.iterator();
+        while(chatIterator.hasNext()){
+            Chat chat = chatIterator.next();
+            if(chat.getTimeStamp().isAfter(accessTime) && !chat.getSenderId().equals(id)){
+                count++;
+            }
+        }
+        return count;
     }
 
     private List<Chat> filterChatsWithDeletedMsgs(List<Chat> chats, String id) {

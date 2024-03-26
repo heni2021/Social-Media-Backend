@@ -2,8 +2,8 @@ package com.learn.example.demo.Service.LoginService;
 
 import com.learn.example.demo.Constants.iChatApplicationConstants;
 import com.learn.example.demo.Models.ChatFeatureModels.Chat;
-import com.learn.example.demo.Models.ResponsesModel.ResponseModel;
 import com.learn.example.demo.Models.LoginModels.User;
+import com.learn.example.demo.Models.ResponsesModel.ResponseModel;
 import com.learn.example.demo.Repository.ChatRepository.ChatFeatureRepository;
 import com.learn.example.demo.Repository.ConnectionRepository.ConnectionFunctionalityRepository;
 import com.learn.example.demo.Repository.LoginRepository.LoginFunctionalityRepository;
@@ -23,7 +23,6 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Service
 public class LoginServiceImplementation implements LoginServiceInterface {

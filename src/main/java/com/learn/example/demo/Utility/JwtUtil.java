@@ -1,8 +1,8 @@
 package com.learn.example.demo.Utility;
 
 import com.learn.example.demo.Constants.iChatApplicationConstants;
-import com.learn.example.demo.iChatApplication;
 import com.learn.example.demo.Models.LoginModels.User;
+import com.learn.example.demo.iChatApplication;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;

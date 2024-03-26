@@ -27,4 +27,8 @@ public interface ChatServiceInterface {
     Chat getChatByChatId(String chatId, String msgId);
 
     ResponseModel forwardMessage(String destinationChatId, String chatId, String msgId, String id, String authToken);
+
+    ResponseModel countUnreadMsgs(String chatId, String id, String authToken);
+
+    ResponseModel updateAccessTime(String chatId, String id, String authToken);
 }
