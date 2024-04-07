@@ -38,8 +38,6 @@ public class LoginFunctionalityController {
 
     @PostMapping("/login")
     public ResponseModel userLogin(@RequestBody User user){
-//    public ResponseModel userLogin(){
-//        User user = new User();
         return serviceImplementation.userLogin(user);
     }
 

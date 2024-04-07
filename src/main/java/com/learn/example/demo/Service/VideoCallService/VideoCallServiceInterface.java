@@ -6,7 +6,7 @@ import com.learn.example.demo.Models.VideoCallModels.CallHistory;
 import java.util.List;
 
 public interface VideoCallServiceInterface {
-    ResponseModel startVideoCall(String userId, String receiverId, String authToken);
+    ResponseModel startVideoCall(String userId, String receiverId, String authToken, String voiceCall);
 
     ResponseModel endVideoCall(String userId, String receiverId, String authToken);
 
@@ -25,4 +25,6 @@ public interface VideoCallServiceInterface {
     ResponseModel clearAllHistory(String id, String authToken);
 
     ResponseModel clearCall(String userId, String callId, String authToken);
+
+    ResponseModel answerCall(String receiverId, String roomId, String authToken);
 }

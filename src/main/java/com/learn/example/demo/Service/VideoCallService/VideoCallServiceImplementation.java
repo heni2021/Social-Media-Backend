@@ -64,9 +64,8 @@ public class VideoCallServiceImplementation implements  VideoCallServiceInterfac
             String baseString = iChatApplicationConstants.SECRET_KEY_ROOM_ID + timestamp + randomInt + userId;
 
             // Use a secure hash function to generate a fixed-size unique identifier
-            String roomId = sha256(baseString);
 
-            return roomId;
+            return sha256(baseString);
         } catch (NoSuchAlgorithmException e) {
             // Handle NoSuchAlgorithmException, e.g., log the error
             e.printStackTrace();
@@ -89,7 +88,7 @@ public class VideoCallServiceImplementation implements  VideoCallServiceInterfac
     }
 
     @Override
-    public ResponseModel startVideoCall(String userId, String receiverId, String authToken) {
+    public ResponseModel startVideoCall(String userId, String receiverId, String authToken, String voiceCall) {
         try {
             if(jwtUtil.validateToken(authToken, userId)){
                 User user = loginRepository.findById(userId).get();
@@ -99,14 +98,13 @@ public class VideoCallServiceImplementation implements  VideoCallServiceInterfac
                         if(receiver.getStatus().equalsIgnoreCase("online")) {
                             user.setStatus("online");
                             receiver.setStatus("online");
-                            String roomId = generateRoomId(userId);
+                            String roomId = generateRoomId(generateId(userId, receiverId));
                             log.info("Room Id Generated!");
                             String userRoomId = user.getRoomId();
                             if (userRoomId.equals("default")) {
                                 if (receiver.getRoomId().equals("default")) {
                                     user.setRoomId(roomId);
                                     receiver.setRoomId(roomId);
-
                                     if (user.getOutgoingCallHistoryId() == null) {
                                         user.setOutgoingCallHistoryId(new ArrayList<>());
                                     }
@@ -128,7 +126,7 @@ public class VideoCallServiceImplementation implements  VideoCallServiceInterfac
                                     receiver.setIncomingCallHistoryId(callHistoryList);
                                     loginRepository.save(receiver);
                                     response.setSuccess(true);
-                                    response.setMessage("Video Started!");
+                                    response.setMessage(roomId+"_"+receiverId);
                                     log.info("Video Call Started with roomId: " + roomId);
                                 } else {
                                     response.setMessage("" + receiver.getUserName() + " is already on a call!");
@@ -162,13 +160,19 @@ public class VideoCallServiceImplementation implements  VideoCallServiceInterfac
         return response;
     }
 
+    private String generateId(String userId, String receiverId) {
+        String users[] = {userId, receiverId};
+        Arrays.sort(users);
+        return users[0]+"_"+users[1];
+    }
+
     @Override
     public ResponseModel endVideoCall(String userId, String receiverId, String authToken) {
         try {
             if(jwtUtil.validateToken(authToken, userId)){
                 User user = loginRepository.findById(userId).get();
                 User receiver = loginRepository.findById(receiverId).get();
-                if(user!=null && receiver!=null) {
+                if(user != null) {
                     String roomId = user.getRoomId();
                     CallHistory callHistory = repository.findByRoomId(roomId);
                     if(user.getId().equals(callHistory.getCallerId())){
@@ -252,7 +256,6 @@ public class VideoCallServiceImplementation implements  VideoCallServiceInterfac
                     return Collections.emptyList();
                 }
             }
-//            List<CallHistory> calls = repository.findByReceiverIdOrderByStartTimeDesc(userId);
         }
         else{
             log.info("Unauthorized Access!");
@@ -289,20 +292,16 @@ public class VideoCallServiceImplementation implements  VideoCallServiceInterfac
 
             // Check if the call time is today
             if (callTime.toLocalDate().equals(currentDate)) {
-                String formattedResultTime = "Today at " + callTime.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-                return formattedResultTime;
+                return "Today at " + callTime.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
             }
 
             // Check if the call time is yesterday
             if (callTime.toLocalDate().equals(currentDate.minusDays(1))) {
-                String formattedResultTime = "Yesterday at " + callTime.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-                return formattedResultTime;
+                return "Yesterday at " + callTime.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
             }
 
             // For any other day, use the default format
-//            String formattedResultTime = callTime.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"));
-            String formattedResultTime = callTime.format(DateTimeFormatter.ofPattern("MMMM dd, yyyy"));
-            return formattedResultTime;
+            return callTime.format(DateTimeFormatter.ofPattern("MMMM dd, yyyy"));
 
         } catch (Exception e) {
             System.err.println("Error parsing the input time: " + e.getMessage());
@@ -348,7 +347,6 @@ public class VideoCallServiceImplementation implements  VideoCallServiceInterfac
                 log.info("Outgoing Call History fetched successfully!");
                 return calls;
             }
-//            List<CallHistory> calls = repository.findByReceiverIdOrderByStartTimeDesc(userId);
         }
         else{
             log.info("Unauthorized Access!");
@@ -363,7 +361,6 @@ public class VideoCallServiceImplementation implements  VideoCallServiceInterfac
                 User user = loginRepository.findById(id).get();
                 if(user.getIncomingCallHistoryId()!=null) {
                     user.setIncomingCallHistoryId(null);
-
                     loginRepository.save(user);
                     response.setSuccess(true);
                     response.setMessage("Incoming Call History Cleared Successfully!");
@@ -478,12 +475,46 @@ public class VideoCallServiceImplementation implements  VideoCallServiceInterfac
             else{
                 response.setSuccess(false);
                 response.setMessage("Unauthorized Access!");
-
+                log.info("Unauthorized Access Occurred with id - "+userId);
             }
         }
         catch(Exception e){
             response.setSuccess(false);
             response.setMessage("Some Error occured!");
+            log.info("Error: "+e.getMessage());
+        }
+        return response;
+    }
+
+    @Override
+    public ResponseModel answerCall(String receiverId, String roomId, String authToken) {
+        try {
+            if(jwtUtil.validateToken(authToken, receiverId)){
+                CallHistory call = repository.findByRoomId(roomId);
+                if(call!=null){
+                    call.setAnswered(true);
+                    call.setStartTime(LocalDateTime.now());
+                    repository.save(call);
+                    response.setMessage("Call Answered Successfully!");
+                    response.setSuccess(true);
+                    log.info("Call Answered for room id - "+roomId);
+                }
+                else{
+                    response.setSuccess(false);
+                    response.setMessage("Call Doesn't Exists!");
+                    log.info("No call is placed for room id - "+roomId);
+                }
+            }
+            else{
+                response.setSuccess(false);
+                response.setMessage("Unauthorized Access!");
+                log.info("Unauthorized Access Occurred with id - "+receiverId);
+            }
+        }
+        catch(Exception e){
+            response.setSuccess(false);
+            response.setMessage("Some Error occured!");
+            log.info("Error: "+e.getMessage());
         }
         return response;
     }

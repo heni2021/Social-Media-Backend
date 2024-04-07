@@ -514,18 +514,24 @@ public class ChatServiceImplementation implements ChatServiceInterface {
                 if(optionalUser.isPresent()){
                     User user = optionalUser.get();
                     HashMap<String, LocalDateTime> chatIds = user.getChatId();
-                    LocalDateTime accessTime = chatIds.get(chatId);
-                    LocalDateTime currentTime = LocalDateTime.now();
-                    if(accessTime!=null && accessTime.isBefore(currentTime)){
-                        List<Chat> chats = repository.findAllByChatIdOrderByTimeStamp(chatId);
-                        Long unreadChatCount = countUnreadChats(chats,id, accessTime);
-                        response.setSuccess(true);
-                        response.setMessage(String.valueOf(unreadChatCount));
+                    if(chatIds==null){
+                        chatIds = new HashMap<>();
+                        chatIds.put(chatId, LocalDateTime.now());
+                        user.setChatId(chatIds);
+                        loginRepository.save(user);
                     }
-                    else{
-                        response.setSuccess(true);
-                        response.setMessage("0");
-                    }
+
+                        LocalDateTime accessTime = chatIds.get(chatId);
+                        LocalDateTime currentTime = LocalDateTime.now();
+                        if (accessTime != null && accessTime.isBefore(currentTime)) {
+                            List<Chat> chats = repository.findAllByChatIdOrderByTimeStamp(chatId);
+                            Long unreadChatCount = countUnreadChats(chats, id, accessTime);
+                            response.setSuccess(true);
+                            response.setMessage(String.valueOf(unreadChatCount));
+                        } else {
+                            response.setSuccess(true);
+                            response.setMessage("0");
+                        }
                 }
                 else{
                     log.info("User Doesn't exists with id- "+id);

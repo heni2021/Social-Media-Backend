@@ -22,5 +22,6 @@ public class CallHistory {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private String roomId;
-
+    private boolean isVoiceCall=false;
+    private boolean isAnswered=false;
 }
