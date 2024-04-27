@@ -9,7 +9,6 @@ import com.learn.example.demo.Models.VideoCallModels.CallHistory;
 import com.learn.example.demo.Repository.LoginRepository.LoginFunctionalityRepository;
 import com.learn.example.demo.Repository.VoiceCallRepository.VoiceCallRepository;
 import com.learn.example.demo.Utility.JwtUtil;
-import jakarta.ejb.Local;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -110,7 +109,7 @@ public class VoiceCallServiceImplementation implements VoiceCallServiceInterface
                         response.setSuccess(true);
                         response.setMessage("Answering");
                         response.setRoomId(roomId);
-                        response.setReceiverId(receiverId);
+                        response.setReceiverId(call.getReceiverId());
                         response.setCallerId(call.getCallerId());
                         log.info("Answering call...");
                     }

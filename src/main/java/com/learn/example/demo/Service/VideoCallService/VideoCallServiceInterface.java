@@ -1,14 +1,15 @@
 package com.learn.example.demo.Service.VideoCallService;
 
+import com.learn.example.demo.Models.ResponsesModel.CallsResponseModel;
 import com.learn.example.demo.Models.ResponsesModel.ResponseModel;
 import com.learn.example.demo.Models.VideoCallModels.CallHistory;
 
 import java.util.List;
 
 public interface VideoCallServiceInterface {
-    ResponseModel startVideoCall(String userId, String receiverId, String authToken, String voiceCall);
+    CallsResponseModel startVideoCall(String userId, String receiverId, String authToken, String voiceCall);
 
-    ResponseModel endVideoCall(String userId, String receiverId, String authToken);
+    CallsResponseModel endVideoCall(String userId, String receiverId, String authToken);
 
     List<CallHistory> fetchIncomingCallHistory(String userId, String authToken);
 
@@ -26,5 +27,5 @@ public interface VideoCallServiceInterface {
 
     ResponseModel clearCall(String userId, String callId, String authToken);
 
-    ResponseModel answerCall(String receiverId, String roomId, String authToken);
+    CallsResponseModel answerCall(String receiverId, String roomId, String authToken);
 }

@@ -1,5 +1,6 @@
 package com.learn.example.demo.Controller.VideoCallController;
 
+import com.learn.example.demo.Models.ResponsesModel.CallsResponseModel;
 import com.learn.example.demo.Models.ResponsesModel.ResponseModel;
 import com.learn.example.demo.Models.VideoCallModels.CallHistory;
 import com.learn.example.demo.Service.VideoCallService.VideoCallServiceImplementation;
@@ -21,32 +22,31 @@ public class VideoCallController {
     private SimpMessagingTemplate messagingTemplate;
 
     @PostMapping("/startCall/{userId}/{receiverId}/{voiceCall}")
-    public ResponseModel startVideoCall(@PathVariable String userId, @PathVariable String receiverId, @PathVariable String voiceCall, HttpServletRequest request){
-        String authToken = request.getHeader("auth-token");
-        ResponseModel responseModel= serviceImplementation.startVideoCall(userId, receiverId, authToken, voiceCall);
+    public CallsResponseModel startVideoCall(@PathVariable String userId, @PathVariable String receiverId, @PathVariable String voiceCall, @RequestHeader("auth-token") String authToken){
+        CallsResponseModel responseModel= serviceImplementation.startVideoCall(userId, receiverId, authToken, voiceCall);
         if(responseModel.isSuccess()){
-            messagingTemplate.convertAndSend("/topic/video-call-subscribe/"+receiverId, userId+"_"+responseModel.getMessage());
-            messagingTemplate.convertAndSend("/topic/video-call-started/"+responseModel.getMessage(), responseModel);
+            messagingTemplate.convertAndSend("/topic/video-call-subscribe/"+receiverId, responseModel);
         }
         return responseModel;
     }
 
     @PutMapping("/answerCall/{receiverId}")
-    public ResponseModel answerVideoCall(@PathVariable String receiverId, @RequestParam String roomId, @RequestHeader("auth-token") String authToken){
-        ResponseModel responseModel = serviceImplementation.answerCall(receiverId, roomId, authToken);
+    public CallsResponseModel answerVideoCall(@PathVariable String receiverId, @RequestParam String roomId, @RequestHeader("auth-token") String authToken){
+        CallsResponseModel responseModel = serviceImplementation.answerCall(receiverId, roomId, authToken);
         if(responseModel.isSuccess()){
-            messagingTemplate.convertAndSend("/topic/video-call-started/"+roomId, responseModel);
+            messagingTemplate.convertAndSend("/topic/video-call-subscribe/"+responseModel.getCallerId(), responseModel);
+            messagingTemplate.convertAndSend("/topic/video-call-subscribe/"+responseModel.getReceiverId(), responseModel);
         }
         return responseModel;
     }
 
     @PostMapping("/endCall/{userId}/{receiverId}")
-    public ResponseModel endVideoCall(@PathVariable String userId, @PathVariable String receiverId, HttpServletRequest request){
+    public CallsResponseModel endVideoCall(@PathVariable String userId, @PathVariable String receiverId, HttpServletRequest request){
         String authToken = request.getHeader("auth-token");
-        ResponseModel responseModel= serviceImplementation.endVideoCall(userId, receiverId, authToken);
+        CallsResponseModel responseModel= serviceImplementation.endVideoCall(userId, receiverId, authToken);
         if(responseModel.isSuccess()){
-            messagingTemplate.convertAndSend("/topic/video-call-subscribe/"+receiverId, "ended");
-            messagingTemplate.convertAndSend("/topic/video-call-subscribe/"+userId, "ended");
+            messagingTemplate.convertAndSend("/topic/video-call-subscribe/"+receiverId, responseModel);
+            messagingTemplate.convertAndSend("/topic/video-call-subscribe/"+userId, responseModel);
         }
         return responseModel;
     }
@@ -95,5 +95,12 @@ public class VideoCallController {
     public ResponseModel deleteCallHistory(@PathVariable String userId, @PathVariable String callId, HttpServletRequest request){
         String authToken = request.getHeader("auth-token");
         return serviceImplementation.clearCall(userId, callId, authToken);
+    }
+
+    @PostMapping("/update/video/status/{receiverId}/{videoOn}")
+    public ResponseModel updateVideoStatus(@PathVariable String receiverId, @PathVariable String videoOn){
+        ResponseModel responseModel = new ResponseModel(true, videoOn);
+        messagingTemplate.convertAndSend("/topic/video-call-subscribe/"+receiverId, responseModel);
+        return responseModel;
     }
 }

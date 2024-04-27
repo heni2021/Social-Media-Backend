@@ -4,8 +4,8 @@ import com.learn.example.demo.Models.ChatFeatureModels.Chat;
 import com.learn.example.demo.Models.ResponsesModel.CallsResponseModel;
 import com.learn.example.demo.Models.ResponsesModel.ResponseModel;
 import com.learn.example.demo.Service.VoiceCallService.VoiceCallServiceImplementation;
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.handler.annotation.*;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
@@ -53,6 +53,13 @@ public class VoiceCallController {
             messagingTemplate.convertAndSend("/topic/voice/chat/"+roomId, chat);
         }
         return response;
+    }
+
+    @PostMapping("/update/muted/{receiverId}/{mute}")
+    public ResponseModel updateMute(@PathVariable String receiverId, @PathVariable String mute){
+        ResponseModel responseModel = new ResponseModel(true, mute);
+        messagingTemplate.convertAndSend("/topic/voice-call-subscribe/"+receiverId, responseModel);
+        return responseModel;
     }
 
 }

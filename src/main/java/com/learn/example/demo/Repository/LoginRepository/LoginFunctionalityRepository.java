@@ -19,4 +19,7 @@ public interface LoginFunctionalityRepository extends MongoRepository<User, Stri
     User findByProfileLink(String profileLink);
 
     List<User> findByUserNameLikeOrFirstNameLikeOrLastNameLike(String regexPattern, String firstNamePattern, String LastNamePattern);
+
+    @Query("{'status': 'online', 'id': {$ne: ?0}}")
+    List<User> findOnlineUsersExceptId(String id);
 }

@@ -2,6 +2,7 @@ package com.learn.example.demo.Service.VideoCallService;
 
 import com.learn.example.demo.Constants.iChatApplicationConstants;
 import com.learn.example.demo.Models.LoginModels.User;
+import com.learn.example.demo.Models.ResponsesModel.CallsResponseModel;
 import com.learn.example.demo.Models.ResponsesModel.ResponseModel;
 import com.learn.example.demo.Models.VideoCallModels.CallHistory;
 import com.learn.example.demo.Repository.LoginRepository.LoginFunctionalityRepository;
@@ -31,6 +32,7 @@ public class VideoCallServiceImplementation implements  VideoCallServiceInterfac
 
     private JwtUtil jwtUtil;
     private ResponseModel response;
+    private CallsResponseModel callResponse;
 
     @Autowired
     private LoginServiceImplementation loginServiceImplementation;
@@ -48,6 +50,7 @@ public class VideoCallServiceImplementation implements  VideoCallServiceInterfac
         this.response = new ResponseModel();
         this.callHistory = new CallHistory();
         this.jwtUtil = new JwtUtil();
+        this.callResponse = new CallsResponseModel();
 //        this.loginServiceImplementation = new LoginServiceImplementation();
     }
 
@@ -88,7 +91,7 @@ public class VideoCallServiceImplementation implements  VideoCallServiceInterfac
     }
 
     @Override
-    public ResponseModel startVideoCall(String userId, String receiverId, String authToken, String voiceCall) {
+    public CallsResponseModel startVideoCall(String userId, String receiverId, String authToken, String voiceCall) {
         try {
             if(jwtUtil.validateToken(authToken, userId)){
                 User user = loginRepository.findById(userId).get();
@@ -125,39 +128,42 @@ public class VideoCallServiceImplementation implements  VideoCallServiceInterfac
                                     callHistoryList.add(call.getId());
                                     receiver.setIncomingCallHistoryId(callHistoryList);
                                     loginRepository.save(receiver);
-                                    response.setSuccess(true);
-                                    response.setMessage(roomId+"_"+receiverId);
+                                    callResponse.setSuccess(true);
+                                    callResponse.setMessage("Calling");
+                                    callResponse.setRoomId(roomId);
+                                    callResponse.setReceiverId(receiverId);
+                                    callResponse.setCallerId(userId);
                                     log.info("Video Call Started with roomId: " + roomId);
                                 } else {
-                                    response.setMessage("" + receiver.getUserName() + " is already on a call!");
-                                    response.setSuccess(false);
+                                    callResponse.setMessage("" + receiver.getUserName() + " is already on a call!");
+                                    callResponse.setSuccess(false);
                                     log.info("Id - " + receiverId + " is already on call");
                                 }
                             } else {
-                                response.setMessage("Cannot conduct call while being on call!");
-                                response.setSuccess(false);
+                                callResponse.setMessage("Cannot conduct call while being on call!");
+                                callResponse.setSuccess(false);
                                 log.info("Id - " + userId + " is already on call");
                             }
                         }
                         else{
-                            response.setMessage("Receiver is Offline!");
-                            response.setSuccess(false);
+                            callResponse.setMessage("Receiver is Offline!");
+                            callResponse.setSuccess(false);
                         }
                     } else {
-                        response.setMessage("User doesn't exists!");
-                        response.setSuccess(false);
+                        callResponse.setMessage("User doesn't exists!");
+                        callResponse.setSuccess(false);
                     }
             }
             else{
-                response.setSuccess(false);
-                response.setMessage("Unauthorized Access!");
+                callResponse.setSuccess(false);
+                callResponse.setMessage("Unauthorized Access!");
             }
         } catch (Exception e) {
-            response.setSuccess(false);
-            response.setMessage("Some Error Occured!");
+            callResponse.setSuccess(false);
+            callResponse.setMessage("Some Error Occured!");
             log.info("Error: "+e.getMessage());
         }
-        return response;
+        return callResponse;
     }
 
     private String generateId(String userId, String receiverId) {
@@ -167,7 +173,7 @@ public class VideoCallServiceImplementation implements  VideoCallServiceInterfac
     }
 
     @Override
-    public ResponseModel endVideoCall(String userId, String receiverId, String authToken) {
+    public CallsResponseModel endVideoCall(String userId, String receiverId, String authToken) {
         try {
             if(jwtUtil.validateToken(authToken, userId)){
                 User user = loginRepository.findById(userId).get();
@@ -192,8 +198,11 @@ public class VideoCallServiceImplementation implements  VideoCallServiceInterfac
                         receiver.setRoomId("default");
                         loginRepository.save(receiver);
 
-                        response.setSuccess(true);
-                        response.setMessage("Video Call Ended!");
+                        callResponse.setSuccess(true);
+                        callResponse.setMessage("Ended!");
+                        callResponse.setCallerId(userId);
+                        callResponse.setReceiverId(receiverId);
+                        callResponse.setRoomId(roomId);
                     }
                     else{
                         // receiver - outgoing history
@@ -212,27 +221,30 @@ public class VideoCallServiceImplementation implements  VideoCallServiceInterfac
                         user.setRoomId("default");
                         loginRepository.save(user);
 
-                        response.setSuccess(true);
-                        response.setMessage("Video Call Ended!");
+                        callResponse.setSuccess(true);
+                        callResponse.setMessage("Ended!");
+                        callResponse.setCallerId(userId);
+                        callResponse.setReceiverId(receiverId);
+                        callResponse.setRoomId(roomId);
                     }
                     callHistory.setEndTime(LocalDateTime.now());
                     repository.save(callHistory);
                 }
                 else{
-                    response.setMessage("User doesn't exists!");
-                    response.setSuccess(false);
+                    callResponse.setMessage("User doesn't exists!");
+                    callResponse.setSuccess(false);
                 }
             }
             else{
-                response.setSuccess(false);
-                response.setMessage("Unauthorized Access!");
+                callResponse.setSuccess(false);
+                callResponse.setMessage("Unauthorized Access!");
             }
         } catch (Exception e) {
-            response.setSuccess(false);
-            response.setMessage("Some Error Occured!");
+            callResponse.setSuccess(false);
+            callResponse.setMessage("Some Error Occured!");
             log.info("Error: "+e.getMessage());
         }
-        return response;
+        return callResponse;
     }
 
     @Override
@@ -487,7 +499,7 @@ public class VideoCallServiceImplementation implements  VideoCallServiceInterfac
     }
 
     @Override
-    public ResponseModel answerCall(String receiverId, String roomId, String authToken) {
+    public CallsResponseModel answerCall(String receiverId, String roomId, String authToken) {
         try {
             if(jwtUtil.validateToken(authToken, receiverId)){
                 CallHistory call = repository.findByRoomId(roomId);
@@ -495,28 +507,31 @@ public class VideoCallServiceImplementation implements  VideoCallServiceInterfac
                     call.setAnswered(true);
                     call.setStartTime(LocalDateTime.now());
                     repository.save(call);
-                    response.setMessage("Call Answered Successfully!");
-                    response.setSuccess(true);
+                    callResponse.setMessage("Answering");
+                    callResponse.setRoomId(roomId);
+                    callResponse.setCallerId(call.getCallerId());
+                    callResponse.setReceiverId(call.getReceiverId());
+                    callResponse.setSuccess(true);
                     log.info("Call Answered for room id - "+roomId);
                 }
                 else{
-                    response.setSuccess(false);
-                    response.setMessage("Call Doesn't Exists!");
+                    callResponse.setSuccess(false);
+                    callResponse.setMessage("Call Doesn't Exists!");
                     log.info("No call is placed for room id - "+roomId);
                 }
             }
             else{
-                response.setSuccess(false);
-                response.setMessage("Unauthorized Access!");
+                callResponse.setSuccess(false);
+                callResponse.setMessage("Unauthorized Access!");
                 log.info("Unauthorized Access Occurred with id - "+receiverId);
             }
         }
         catch(Exception e){
-            response.setSuccess(false);
-            response.setMessage("Some Error occured!");
+            callResponse.setSuccess(false);
+            callResponse.setMessage("Some Error occured!");
             log.info("Error: "+e.getMessage());
         }
-        return response;
+        return callResponse;
     }
 
     private List<CallHistory> fetchCallHistoryFromId(List<String> callId) {
