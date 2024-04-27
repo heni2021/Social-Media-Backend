@@ -28,7 +28,7 @@ public class RandomChatServiceImplementation implements  RandomChatServiceInterf
         catch(Exception e){
             log.info("Error Occured: "+e.getMessage());
         }
-        return null;
+        return new User();
     }
 
     private long generateRandomIndex(int i, int size) {
