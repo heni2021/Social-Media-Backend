@@ -181,7 +181,7 @@ public class VideoCallServiceImplementation implements  VideoCallServiceInterfac
                 if(user != null) {
                     String roomId = user.getRoomId();
                     CallHistory callHistory = repository.findByRoomId(roomId);
-                    if(user.getId().equals(callHistory.getCallerId())){
+                    if(callHistory!=null && user.getId().equals(callHistory.getCallerId())){
                         // user - outgoing history
                         // receiver - incoming history
                         List<String> callId = user.getOutgoingCallHistoryId();
