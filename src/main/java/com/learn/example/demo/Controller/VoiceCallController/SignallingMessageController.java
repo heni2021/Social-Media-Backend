@@ -14,6 +14,6 @@ public class SignallingMessageController {
 
     @MessageMapping("/send")
     public void sendSignallingMessage(@Payload SignallingMessagePOJO message){
-        messagingTemplate.convertAndSendToUser(message.getReceiver(), "/topic/signaling", message);
+        messagingTemplate.convertAndSendToUser(message.getReceiver(), "/topic/signaling/"+message.getReceiver(), message);
     }
 }
